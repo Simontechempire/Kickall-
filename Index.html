@@ -3,38 +3,42 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>KickBot Pair</title>
-<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <style>
 body{background:#0a0a0a;color:#fff;font-family:Arial;text-align:center;padding:20px}
-h2{color:#00ff88;margin-top:30px}
-#qrbox{background:#fff;padding:20px;border-radius:15px;display:inline-block;margin:20px;min-width:200px;min-height:200px}
-#status{color:#888;font-size:14px}
-.btn{background:#00ff88;color:#000;padding:12px 25px;border-radius:8px;text-decoration:none;font-weight:bold}
+.card{background:#1a1a1a;padding:25px;border-radius:15px;max-width:400px;margin:30px auto}
+h2{color:#00ff88}
+input{width:90%;padding:14px;border-radius:8px;border:none;background:#2a2a2a;color:#fff;font-size:16px;margin:10px 0}
+button{width:95%;padding:14px;border-radius:8px;border:none;background:#00ff88;color:#000;font-weight:bold;font-size:16px;cursor:pointer;margin-top:10px}
+#codeBox{font-size:32px;letter-spacing:5px;background:#000;padding:15px;border-radius:10px;margin:20px 0;color:#00ff88;font-weight:bold;display:none}
+#status{color:#888;margin-top:15px}
 </style>
 </head>
 <body>
-<h2>🤖 KICKBOT</h2>
-<p>WhatsApp Pairing</p>
-<div id="qrbox">Loading...</div>
-<p id="status">Waiting for QR...</p>
+<h2>🤖 KICKBOT PAIR</h2>
+<div class="card">
+<p>Enter WhatsApp Number with Country Code</p>
+<input id="number" placeholder="2349123456789" type="number">
+<button onclick="generate()">GENERATE PAIR CODE</button>
+<div id="codeBox"></div>
+<p id="status">Example: 234... without +</p>
+<p style="font-size:12px;color:#666;margin-top:20px">After getting code:<br>WhatsApp > Linked Devices > Link with phone number > Enter code</p>
+</div>
 <script>
-let last=""
-setInterval(async()=>{
+async function generate(){
+  let num = document.getElementById('number').value
+  if(!num) return alert('Enter number')
+  document.getElementById('status').innerHTML = 'Generating...'
   try{
-    let res=await fetch('/qr'); let data=await res.json();
-    if(data.qr==="CONNECTED"){
-      document.getElementById('qrbox').innerHTML="✅ CONNECTED"
-      document.getElementById('status').innerHTML="Bot is online! You can close this page"
-      return
-    }
-    if(data.qr && data.qr!==last){
-      last=data.qr
-      document.getElementById('qrbox').innerHTML=""
-      new QRCode(document.getElementById('qrbox'), {text:data.qr,width:250,height:250})
-      document.getElementById('status').innerHTML="Scan this QR: WhatsApp > Linked Devices > Link a device"
-    }
-  }catch(e){}
-},2000)
+    let res = await fetch('/pair', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({number:num})})
+    let data = await res.json()
+    if(data.error){ document.getElementById('status').innerHTML = 'Error: '+data.error; return }
+    document.getElementById('codeBox').style.display='block'
+    document.getElementById('codeBox').innerHTML = data.code
+    document.getElementById('status').innerHTML = '✅ Code Generated! Enter it in WhatsApp'
+  }catch(e){
+    document.getElementById('status').innerHTML = 'Server not ready, wait 5 sec and try again'
+  }
+}
 </script>
 </body>
 </html>
