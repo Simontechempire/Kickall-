@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KickBot Pair</title>
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<style>
+body{background:#0a0a0a;color:#fff;font-family:Arial;text-align:center;padding:20px}
+h2{color:#00ff88;margin-top:30px}
+#qrbox{background:#fff;padding:20px;border-radius:15px;display:inline-block;margin:20px;min-width:200px;min-height:200px}
+#status{color:#888;font-size:14px}
+.btn{background:#00ff88;color:#000;padding:12px 25px;border-radius:8px;text-decoration:none;font-weight:bold}
+</style>
+</head>
+<body>
+<h2>🤖 KICKBOT</h2>
+<p>WhatsApp Pairing</p>
+<div id="qrbox">Loading...</div>
+<p id="status">Waiting for QR...</p>
+<script>
+let last=""
+setInterval(async()=>{
+  try{
+    let res=await fetch('/qr'); let data=await res.json();
+    if(data.qr==="CONNECTED"){
+      document.getElementById('qrbox').innerHTML="✅ CONNECTED"
+      document.getElementById('status').innerHTML="Bot is online! You can close this page"
+      return
+    }
+    if(data.qr && data.qr!==last){
+      last=data.qr
+      document.getElementById('qrbox').innerHTML=""
+      new QRCode(document.getElementById('qrbox'), {text:data.qr,width:250,height:250})
+      document.getElementById('status').innerHTML="Scan this QR: WhatsApp > Linked Devices > Link a device"
+    }
+  }catch(e){}
+},2000)
+</script>
+</body>
+</html>
