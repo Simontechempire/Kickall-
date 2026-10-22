@@ -10,18 +10,20 @@ async function Connect() {
     version,
     auth: state,
     logger: pino({ level: 'silent' }),
-    printQRInTerminal: true,
-    browser: ["KickBot", "Chrome", "1.0"]
+    printQRInTerminal: false,
+    browser: ["Ubuntu", "Chrome", "20.0.04"]
   })
+  
+  global.sockInstance = sock
 
   sock.ev.on('creds.update', saveCreds)
   
   sock.ev.on('connection.update', async (update) => {
-    const { connection, lastDisconnect, qr } = update
-    if(qr) global.qrData = qr
+    const { connection, lastDisconnect } = update
     if(connection === 'open') {
       console.log('✅ KICKBOT CONNECTED')
       global.qrData = "CONNECTED"
+      global.pairCode = "CONNECTED"
     }
     if(connection === 'close') {
       const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== DisconnectReason.loggedOut
@@ -41,6 +43,7 @@ async function Connect() {
     
     fs.readdirSync('./plugins').forEach(file => {
       if(file.endsWith('.js')) {
+        delete require.cache[require.resolve(`./plugins/${file}`)]
         const plugin = require(`./plugins/${file}`)
         if(plugin.command.includes(cmd)) {
           plugin.run(sock, m, from, msg, args)
